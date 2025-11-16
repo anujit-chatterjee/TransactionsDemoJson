@@ -103,9 +103,9 @@ public class DataStreamJob {
                 connOptions
         )).name("Create Transactions Table Sink");
 
-        //create sales_per_category table sink
+        //create transactions_per_category table sink
         transactionStream.addSink(JdbcSink.sink(
-                "CREATE TABLE IF NOT EXISTS sales_per_category (" +
+                "CREATE TABLE IF NOT EXISTS transactions_per_category (" +
                         "transaction_date DATE, " +
                         "category VARCHAR(255), " +
                         "total_sales DOUBLE PRECISION, " +
@@ -118,9 +118,9 @@ public class DataStreamJob {
                 connOptions
         )).name("Create Sales Per Category Table");
 
-        //create sales_per_day table sink
+        //create transactions_per_day table sink
         transactionStream.addSink(JdbcSink.sink(
-                "CREATE TABLE IF NOT EXISTS sales_per_day (" +
+                "CREATE TABLE IF NOT EXISTS transactions_per_day (" +
                         "transaction_date DATE PRIMARY KEY, " +
                         "total_sales DOUBLE PRECISION " +
                         ")",
@@ -131,9 +131,9 @@ public class DataStreamJob {
                 connOptions
         )).name("Create Sales Per Day Table");
 
-        //create sales_per_month table sink
+        //create transactions_per_month table sink
         transactionStream.addSink(JdbcSink.sink(
-                "CREATE TABLE IF NOT EXISTS sales_per_month (" +
+                "CREATE TABLE IF NOT EXISTS transactions_per_month (" +
                         "year INTEGER, " +
                         "month INTEGER, " +
                         "total_sales DOUBLE PRECISION, " +
@@ -193,12 +193,12 @@ public class DataStreamJob {
                     salesPerCategory.setTotalSales(salesPerCategory.getTotalSales() + t1.getTotalSales());
                     return salesPerCategory;
                 }).addSink(JdbcSink.sink(
-                        "INSERT INTO sales_per_category(transaction_date, category, total_sales) " +
+                        "INSERT INTO transactions_per_category(transaction_date, category, total_sales) " +
                                 "VALUES (?, ?, ?) " +
                                 "ON CONFLICT (transaction_date, category) DO UPDATE SET " +
                                 "total_sales = EXCLUDED.total_sales " +
-                                "WHERE sales_per_category.category = EXCLUDED.category " +
-                                "AND sales_per_category.transaction_date = EXCLUDED.transaction_date",
+                                "WHERE transactions_per_category.category = EXCLUDED.category " +
+                                "AND transactions_per_category.transaction_date = EXCLUDED.transaction_date",
                         (JdbcStatementBuilder<SalesPerCategory>) (preparedStatement, salesPerCategory) -> {
                             preparedStatement.setDate(1, new Date(System.currentTimeMillis()));
                             preparedStatement.setString(2, salesPerCategory.getCategory());
@@ -219,11 +219,11 @@ public class DataStreamJob {
                     salesPerDay.setTotalSales(salesPerDay.getTotalSales() + t1.getTotalSales());
                     return salesPerDay;
                 }).addSink(JdbcSink.sink(
-                        "INSERT INTO sales_per_day(transaction_date, total_sales) " +
+                        "INSERT INTO transactions_per_day(transaction_date, total_sales) " +
                                 "VALUES (?,?) " +
                                 "ON CONFLICT (transaction_date) DO UPDATE SET " +
                                 "total_sales = EXCLUDED.total_sales " +
-                                "WHERE sales_per_day.transaction_date = EXCLUDED.transaction_date",
+                                "WHERE transactions_per_day.transaction_date = EXCLUDED.transaction_date",
                         (JdbcStatementBuilder<SalesPerDay>) (preparedStatement, salesPerDay) -> {
                             preparedStatement.setDate(1, new Date(System.currentTimeMillis()));
                             preparedStatement.setDouble(2, salesPerDay.getTotalSales());
@@ -245,12 +245,12 @@ public class DataStreamJob {
                     salesPerMonth.setTotalSales(salesPerMonth.getTotalSales() + t1.getTotalSales());
                     return salesPerMonth;
                 }).addSink(JdbcSink.sink(
-                        "INSERT INTO sales_per_month(year, month, total_sales) " +
+                        "INSERT INTO transactions_per_month(year, month, total_sales) " +
                                 "VALUES (?,?,?) " +
                                 "ON CONFLICT (year, month) DO UPDATE SET " +
                                 "total_sales = EXCLUDED.total_sales " +
-                                "WHERE sales_per_month.year = EXCLUDED.year " +
-                                "AND sales_per_month.month = EXCLUDED.month ",
+                                "WHERE transactions_per_month.year = EXCLUDED.year " +
+                                "AND transactions_per_month.month = EXCLUDED.month ",
                         (JdbcStatementBuilder<SalesPerMonth>) (preparedStatement, salesPerMonth) -> {
                             preparedStatement.setInt(1, salesPerMonth.getYear());
                             preparedStatement.setInt(2, salesPerMonth.getMonth());
